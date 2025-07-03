@@ -1,5 +1,7 @@
+// src/pages/SearchDonations.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type {Donation} from "../types/types"; // Import the Donation type
 
 export default function SearchDonations() {
   const navigate = useNavigate();
@@ -11,12 +13,13 @@ export default function SearchDonations() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
 
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ Basic check: At least 1 filter required
     if (
       !name.trim() &&
       !email.trim() &&
@@ -28,6 +31,7 @@ export default function SearchDonations() {
       return;
     }
 
+    // ✅ Build query params
     const params = new URLSearchParams();
     if (name.trim()) params.append("name", name.trim());
     else if (email.trim()) params.append("email", email.trim());
@@ -40,38 +44,45 @@ export default function SearchDonations() {
 
     setLoading(true);
 
-try {
-  const raw = localStorage.getItem("token");
-  let token = "";
-
-  if (raw) {
     try {
-      const parsed = JSON.parse(raw);
-      token = parsed.token || raw;
-    } catch {
-      token = raw;
+      // ✅ Load token safely
+      const raw = localStorage.getItem("token");
+      let token = "";
+
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          token = parsed.token || raw;
+        } catch {
+          token = raw;
+        }
+      }
+
+      console.log("➡️ Using token:", token);
+
+      // ✅ Fetch with typed result
+      const response = await fetch(
+        `http://localhost:3000/app/admin/donor/search?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Server error: " + response.statusText);
+      }
+
+      const data: Donation[] = await response.json();
+      console.log( "Search results:", data);
+      setResults(data);
+    } catch (error) {
+      console.error("Error fetching donations:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-  }
-
-  console.log("✅ Final token sent:", token);
-
-  const response = await fetch(
-    `http://localhost:3000/app/admin/donor/search?${params.toString()}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`, // ✅ FIXED!
-      },
-    }
-  );
-
-  const data = await response.json();
-  setResults(data || []);
-} catch (error) {
-  console.error("Error fetching donations:", error);
-  alert("Something went wrong. Please try again.");
-} finally {
-  setLoading(false);
-}
   };
 
   return (
@@ -81,17 +92,21 @@ try {
           Search Donations
         </h1>
 
-        <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSearch}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {/* Inputs */}
           <div>
             <label className="block mb-1 text-sm text-gray-700 poppins-semibold">
               Donor Name
             </label>
             <input
               type="text"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -101,10 +116,10 @@ try {
             </label>
             <input
               type="email"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="john@example.com"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -114,10 +129,10 @@ try {
             </label>
             <input
               type="tel"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+1 123 456 7890"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -129,10 +144,10 @@ try {
               type="number"
               min="0"
               step="0.01"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="100.00"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -142,9 +157,9 @@ try {
             </label>
             <input
               type="date"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -154,9 +169,9 @@ try {
             </label>
             <input
               type="date"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
@@ -175,7 +190,7 @@ try {
           </div>
         </form>
 
-        {/* Table of results */}
+        {/* ✅ Result Table */}
         {results.length > 0 && (
           <div className="mt-8 overflow-x-auto">
             <table className="min-w-full table-auto border">
@@ -190,12 +205,19 @@ try {
               </thead>
               <tbody>
                 {results.map((donation) => (
-                  <tr key={donation._id} className="border-b hover:bg-gray-50">
+                  <tr
+                    key={donation._id}
+                    className="border-b hover:bg-gray-50"
+                  >
                     <td className="px-4 py-2">{donation.name}</td>
                     <td className="px-4 py-2">{donation.email}</td>
                     <td className="px-4 py-2">{donation.phone}</td>
-                    <td className="px-4 py-2">${donation.donation.toFixed(2)}</td>
-                    <td className="px-4 py-2">{new Date(donation.createdAt).toLocaleDateString()}</td>
+                    <td className="px-4 py-2">
+                      ${donation.donation.toFixed(2)}
+                    </td>
+                    <td className="px-4 py-2">
+                      {new Date(donation.createdAt).toLocaleDateString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -203,7 +225,7 @@ try {
           </div>
         )}
 
-        {/* Back link */}
+        {/* ✅ Back button */}
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate("/add-donation")}
