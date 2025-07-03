@@ -26,9 +26,10 @@ export default function AdminLogin() {
 
       const data = await response.json();
       console.log("DATA:", data);
+      console.log(data.token);
 
-      if (response.ok && data.token) {
-        localStorage.setItem("token", data.token);
+      if (response.ok && data.token.token) {
+        localStorage.setItem("token", data.token.token);
         alert("Login successful!");
         navigate("/add-donation");
       } else {

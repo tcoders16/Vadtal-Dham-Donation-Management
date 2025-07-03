@@ -1,31 +1,17 @@
 import { Request, Response } from "express";
-import Donor from "../models/donarModel"; // Ensure this path is correct
-
+import { SearchDonorQuery } from "../interface/types";
+import searchDonorService from "../service/searchDonorService";
 
 export async function searchDonorController(req: Request, res: Response) {
-  const { query } = req.query;
-
-  if (!query) {
-     res.status(400).json({ message: "Query is required." });
-  }
+  const { name, email, phone, amount, from, to }: SearchDonorQuery = req.query;
 
   try {
-    const donors = await Donor.find({
-      $or: [
-        { name: { $regex: query as string, $options: "i" } },
-        { phone: { $regex: query as string, $options: "i" } },
-        { email: { $regex: query as string, $options: "i" } }
-      ]
-    }).limit(5);
-
-    res.status(200).json(donors);
+    const results = await searchDonorService({ name, email, phone, amount, from, to });
+    res.status(200).json(results);
   } catch (error) {
-    console.error("Search error:", error);
+    console.error("Search donors error:", error);
     res.status(500).json({ message: "Failed to search donors." });
   }
 }
-
-
-
 
 export default searchDonorController;

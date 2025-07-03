@@ -22,3 +22,12 @@ export type newDonar = {
     transactionId?: string; // Optional, in case of online payments
 }
 
+
+export interface SearchDonorQuery {
+  name?: string | string[];
+  email?: string | string[];
+  phone?: string | string[];
+  amount?: string | string[];
+  from?: string | string[];
+  to?: string | string[];
+}
