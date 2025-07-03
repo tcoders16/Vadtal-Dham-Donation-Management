@@ -24,10 +24,10 @@ logs
 Thumbs.db
 
 # === IDEs ===
-.vscode/
 .idea/
 *.swp
 
 # === Others ===
 *.local
 *.sublime-workspace
+config.bat
